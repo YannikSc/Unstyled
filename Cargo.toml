@@ -2,7 +2,14 @@
 name = "unstyled"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["Yannik_Sc"]
+description = "Unstyled is just another library which allows to write scoped CSS styles in Rust"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+proc-macro = true
 
 [dependencies]
+
+[dev-dependencies]
+leptos = "0.4"
