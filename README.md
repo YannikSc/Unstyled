@@ -1,3 +1,5 @@
+![Build Status](https://github.com/YannikSc/unstyled/actions/workflows/rust.yml/badge.svg) [![crates.io](https://img.shields.io/crates/v/unstyled)](https://crates.io/crates/unstyled)
+
 # Unstyled
 
 Another library that provide scoped CSS styling in Rust.
