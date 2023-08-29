@@ -1,4 +1,6 @@
-use proc_macro::TokenStream;
+#![feature(proc_macro_span)]
+
+use proc_macro::{Span, TokenStream};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -13,16 +15,21 @@ static mut GENERATED_STYLES: Option<HashMap<String, String>> = None;
 
 #[cfg_attr(not(test), proc_macro)]
 pub fn style(tokens: TokenStream) -> TokenStream {
+    unsafe  {
+        if GENERATED_STYLES.is_none() {
+            GENERATED_STYLES.replace(HashMap::new());
+        }
+    }
+
     let style = tokens.to_string();
     let mut hasher = DefaultHasher::new();
     style.hash(&mut hasher);
     let scope_class = format!("un-{}", hasher.finish());
-    let scope_class_lit = format!(r#""{scope_class}""#);
+    let scope_class_lit = format!(r#"{{ unstyled::write_style!(); "{scope_class}"}}"#);
     let mut parser = StylesheetParser::default();
     parser.parse_stylesheet(style);
 
     let style = parser.stylesheet.compile(&scope_class);
-    write_to_file(&style);
 
     unsafe {
         if GENERATED_STYLES.is_none() {
@@ -37,9 +44,24 @@ pub fn style(tokens: TokenStream) -> TokenStream {
     TokenStream::from_str(&scope_class_lit).expect("Can return scope_class")
 }
 
-fn write_to_file(css: &str) {
-    let output = std::env::current_dir().unwrap().join("target").join("unstyled.css");
-    std::fs::write(output, css).expect("Could not write data to unstyled.css");
+#[cfg_attr(not(test), proc_macro)]
+pub fn write_style(_: TokenStream) -> TokenStream {
+    let target_dir = std::env::current_dir().unwrap().join("target");
+    unsafe {
+        if let Some(styles) = &GENERATED_STYLES {
+            let styles = styles.values().cloned().collect::<Vec<_>>().join("\n");
+
+            std::fs::write(target_dir.join("unstyled.css"), &styles).unwrap();
+        }
+    }
+
+    TokenStream::new()
+}
+
+fn write_to_partial(css: &str, outfile: &str) {
+    let output_dir = std::env::current_dir().unwrap().join("target").join("unstyled");
+    std::fs::create_dir_all(&output_dir).unwrap();
+    std::fs::write(output_dir.join(outfile), css).expect("Could not write partial css output");
 }
 
 #[cfg(test)]
@@ -241,6 +263,18 @@ mod test {
         assert_eq!(
             compiled,
             "span.random_test_class::before { content: '$'; display: block; }"
+        );
+    }
+
+    #[test]
+    pub fn test_pseudo_selector_deep() {
+        let css = "span :deep(*:not(a)) { content: '$'; display: block; }".to_string();
+        let mut parser = StylesheetParser::default();
+        parser.parse_stylesheet(css);
+        let compiled = parser.stylesheet.compile("random_test_class");
+        assert_eq!(
+            compiled,
+            "span.random_test_class *:not(a) { content: '$'; display: block; }"
         );
     }
 }

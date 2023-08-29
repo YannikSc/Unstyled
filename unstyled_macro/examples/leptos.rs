@@ -71,6 +71,6 @@ pub fn main() {
 }
 
 fn write_to_target(html: &str) {
-    let output = std::env::current_dir().unwrap().join("target").join("index.html");
+    let output = std::env::current_dir().unwrap().join("../../target").join("index.html");
     std::fs::write(output, html).expect("Could not write index.html");
 }
