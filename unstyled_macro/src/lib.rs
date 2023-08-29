@@ -1,5 +1,3 @@
-#![feature(proc_macro_span)]
-
 use proc_macro::TokenStream;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
@@ -13,6 +11,9 @@ mod css;
 // TODO: GET RID OF THIS!!
 static mut GENERATED_STYLES: Option<HashMap<String, String>> = None;
 
+///
+/// Generates a style class for the components and emits the style
+///
 #[cfg_attr(not(test), proc_macro)]
 pub fn style(tokens: TokenStream) -> TokenStream {
     unsafe  {
@@ -44,6 +45,10 @@ pub fn style(tokens: TokenStream) -> TokenStream {
     TokenStream::from_str(&scope_class_lit).expect("Can return scope_class")
 }
 
+///
+/// This macro is used to write the generated and buffered css styles into a single file
+///
+#[doc(hidden)]
 #[cfg_attr(not(test), proc_macro)]
 pub fn write_style(_: TokenStream) -> TokenStream {
     let target_dir = std::env::current_dir().unwrap().join("target");
