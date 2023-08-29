@@ -1,4 +1,6 @@
-use proc_macro::TokenStream;
+#![feature(proc_macro_span)]
+
+use proc_macro::{Span, TokenStream};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -17,12 +19,18 @@ pub fn style(tokens: TokenStream) -> TokenStream {
     let mut hasher = DefaultHasher::new();
     style.hash(&mut hasher);
     let scope_class = format!("un-{}", hasher.finish());
-    let scope_class_lit = format!(r#""{scope_class}""#);
+    let write_macro = unsafe {
+        if let Some(styles) = &GENERATED_STYLES {
+            if styles.is_empty() {
+                "unstyled::write_style!();"
+            } else { "" }
+        } else { "" }
+    };
+    let scope_class_lit = format!(r#"{{ {write_macro} "{scope_class}"}}"#);
     let mut parser = StylesheetParser::default();
     parser.parse_stylesheet(style);
 
     let style = parser.stylesheet.compile(&scope_class);
-    write_to_file(&style);
 
     unsafe {
         if GENERATED_STYLES.is_none() {
@@ -37,9 +45,25 @@ pub fn style(tokens: TokenStream) -> TokenStream {
     TokenStream::from_str(&scope_class_lit).expect("Can return scope_class")
 }
 
-fn write_to_file(css: &str) {
-    let output = std::env::current_dir().unwrap().join("target").join("unstyled.css");
-    std::fs::write(output, css).expect("Could not write data to unstyled.css");
+#[cfg_attr(not(test), proc_macro)]
+pub fn write_style(_: TokenStream) -> TokenStream {
+    let file = Span::call_site().source_file().path().to_str().unwrap().replace("/", "_").replace(".rs", ".css");
+
+    unsafe {
+        if let Some(styles) = &GENERATED_STYLES {
+            let styles = styles.values().cloned().collect::<Vec<_>>().join("\n");
+
+            write_to_partial(&styles, &file);
+        }
+    }
+
+    TokenStream::new()
+}
+
+fn write_to_partial(css: &str, outfile: &str) {
+    let output_dir = std::env::current_dir().unwrap().join("target").join("unstyled");
+    std::fs::create_dir_all(&output_dir).unwrap();
+    std::fs::write(output_dir.join(outfile), css).expect("Could not write partial css output");
 }
 
 #[cfg(test)]
