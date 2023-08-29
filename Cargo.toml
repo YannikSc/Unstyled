@@ -6,10 +6,16 @@ license = "MIT"
 authors = ["Yannik_Sc"]
 description = "Unstyled is just another library which allows to write scoped CSS styles in Rust"
 
+[[example]]
+name = "leptos"
+required-features = ["leptos-example"]
+
 [lib]
 proc-macro = true
 
 [dependencies]
+leptos = { version = "0.4", optional = true }
 
-[dev-dependencies]
-leptos = "0.4"
+[features]
+leptos-example = ["leptos"]
+
