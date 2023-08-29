@@ -72,6 +72,6 @@ might want to check them out!
 ## Known issues / TODOs
 
 - So far selectors inside pseudo-selectors (like `:not()`) are not scoped!
-- There is no way of defining unscoped styles
+- ~~There is no way of defining unscoped styles~~
 - Storing/Writing the merged css is suuper dirty right now
 

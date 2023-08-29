@@ -15,18 +15,17 @@ static mut GENERATED_STYLES: Option<HashMap<String, String>> = None;
 
 #[cfg_attr(not(test), proc_macro)]
 pub fn style(tokens: TokenStream) -> TokenStream {
+    unsafe  {
+        if GENERATED_STYLES.is_none() {
+            GENERATED_STYLES.replace(HashMap::new());
+        }
+    }
+
     let style = tokens.to_string();
     let mut hasher = DefaultHasher::new();
     style.hash(&mut hasher);
     let scope_class = format!("un-{}", hasher.finish());
-    let write_macro = unsafe {
-        if let Some(styles) = &GENERATED_STYLES {
-            if styles.is_empty() {
-                "unstyled::write_style!();"
-            } else { "" }
-        } else { "" }
-    };
-    let scope_class_lit = format!(r#"{{ {write_macro} "{scope_class}"}}"#);
+    let scope_class_lit = format!(r#"{{ unstyled::write_style!(); "{scope_class}"}}"#);
     let mut parser = StylesheetParser::default();
     parser.parse_stylesheet(style);
 
@@ -47,13 +46,12 @@ pub fn style(tokens: TokenStream) -> TokenStream {
 
 #[cfg_attr(not(test), proc_macro)]
 pub fn write_style(_: TokenStream) -> TokenStream {
-    let file = Span::call_site().source_file().path().to_str().unwrap().replace("/", "_").replace(".rs", ".css");
-
+    let target_dir = std::env::current_dir().unwrap().join("target");
     unsafe {
         if let Some(styles) = &GENERATED_STYLES {
             let styles = styles.values().cloned().collect::<Vec<_>>().join("\n");
 
-            write_to_partial(&styles, &file);
+            std::fs::write(target_dir.join("unstyled.css"), &styles).unwrap();
         }
     }
 
@@ -265,6 +263,18 @@ mod test {
         assert_eq!(
             compiled,
             "span.random_test_class::before { content: '$'; display: block; }"
+        );
+    }
+
+    #[test]
+    pub fn test_pseudo_selector_deep() {
+        let css = "span :deep(*:not(a)) { content: '$'; display: block; }".to_string();
+        let mut parser = StylesheetParser::default();
+        parser.parse_stylesheet(css);
+        let compiled = parser.stylesheet.compile("random_test_class");
+        assert_eq!(
+            compiled,
+            "span.random_test_class *:not(a) { content: '$'; display: block; }"
         );
     }
 }

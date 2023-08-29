@@ -133,7 +133,32 @@ const PSEUDO_ELEMENTS: &[&str] = &[
 
 fn apply_scope_class(scope_class: &str, combinator: &str, selector: &Selector) -> String {
     match selector {
-        Selector::Pseudo(_pseudo) => format!(".{scope_class}{selector}{combinator}"),
+        Selector::Pseudo(pseudo) => {
+            if pseudo.starts_with("deep") {
+                let chars = pseudo.chars().skip_while(|char| *char != '(').skip(1);
+                let mut in_braces = 1;
+                let mut selector = String::new();
+                for char in chars {
+                    if char == '(' {
+                        in_braces += 1;
+                    }
+
+                    if char == ')' {
+                        in_braces -= 1;
+
+                        if in_braces == 0 {
+                            return format!("{selector}{combinator}");
+                        }
+                    }
+
+                    selector.push(char);
+                }
+
+            }
+
+
+            format!(".{scope_class}{selector}{combinator}")
+        },
         selector => format!("{selector}.{scope_class}{combinator}"),
     }
 }
