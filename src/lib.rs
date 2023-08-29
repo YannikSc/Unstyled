@@ -217,4 +217,30 @@ mod test {
             "@layer my_fancy_layer {.my-element.random_test_class { margin: 1210000000em; }}"
         );
     }
+
+    #[test]
+    pub fn test_pseudo_element() {
+        let css = "span::before { content: '$'; display: block; }".to_string();
+        let mut parser = StylesheetParser::default();
+        parser.parse_stylesheet(css);
+        let compiled = parser.stylesheet.compile("random_test_class");
+        assert_eq!(
+            compiled,
+            "span.random_test_class::before { content: '$'; display: block; }"
+        );
+    }
+
+    /// Unstyled ensures, that pseudo elements (like the `::before`) actually have the double colon
+    /// (::) as defined by the [CSS Pseudo-Elements Module Level 4](https://drafts.csswg.org/css-pseudo/)
+    #[test]
+    pub fn test_pseudo_element_corrected() {
+        let css = "span:before { content: '$'; display: block; }".to_string();
+        let mut parser = StylesheetParser::default();
+        parser.parse_stylesheet(css);
+        let compiled = parser.stylesheet.compile("random_test_class");
+        assert_eq!(
+            compiled,
+            "span.random_test_class::before { content: '$'; display: block; }"
+        );
+    }
 }
