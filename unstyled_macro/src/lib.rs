@@ -56,7 +56,7 @@ pub fn write_style(_: TokenStream) -> TokenStream {
         if let Some(styles) = &GENERATED_STYLES {
             let styles = styles.values().cloned().collect::<Vec<_>>().join("\n");
 
-            std::fs::write(target_dir.join("unstyled.css"), &styles).unwrap();
+            std::fs::write(target_dir.join("unstyled.css"), styles).unwrap();
         }
     }
 

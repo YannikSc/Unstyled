@@ -1,6 +1,6 @@
 [package]
 name = "unstyled"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 authors = ["Yannik_Sc"]
@@ -9,4 +9,4 @@ repository = "https://github.com/YannikSc/unstyled"
 readme = "../README.md"
 
 [dependencies]
-unstyled_macro = { path = "../unstyled_macro", version = "0.1.0" }
+unstyled_macro = { path = "../unstyled_macro", version = "0.1.2" }
