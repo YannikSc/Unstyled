@@ -1,6 +1,6 @@
 #![feature(proc_macro_span)]
 
-use proc_macro::{Span, TokenStream};
+use proc_macro::TokenStream;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -56,12 +56,6 @@ pub fn write_style(_: TokenStream) -> TokenStream {
     }
 
     TokenStream::new()
-}
-
-fn write_to_partial(css: &str, outfile: &str) {
-    let output_dir = std::env::current_dir().unwrap().join("target").join("unstyled");
-    std::fs::create_dir_all(&output_dir).unwrap();
-    std::fs::write(output_dir.join(outfile), css).expect("Could not write partial css output");
 }
 
 #[cfg(test)]
