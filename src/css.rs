@@ -112,6 +112,25 @@ enum Combinator {
     Combine(Selector),
 }
 
+const PSEUDO_ELEMENTS: &[&str] = &[
+    "after",
+    "backdrop",
+    "before",
+    "cue",
+    "cue-region",
+    "first-letter",
+    "first-line",
+    "file-selector-button",
+    "grammar-error",
+    "marker",
+    "part",
+    "placeholder",
+    "selection",
+    "slotted",
+    "spelling-error",
+    "target-text",
+];
+
 fn apply_scope_class(scope_class: &str, combinator: &str, selector: &Selector) -> String {
     match selector {
         Selector::Pseudo(_pseudo) => format!(".{scope_class}{selector}{combinator}"),
@@ -174,7 +193,17 @@ impl Display for Selector {
             Selector::Class(selector) => f.write_fmt(format_args!(".{selector}")),
             Selector::Id(selector) => f.write_fmt(format_args!("#{selector}")),
             Selector::Attribute(selector) => f.write_fmt(format_args!("[{selector}]")),
-            Selector::Pseudo(selector) => f.write_fmt(format_args!(":{selector}")),
+            Selector::Pseudo(selector) => {
+                let mut pseudo_colon = ":";
+                for element in PSEUDO_ELEMENTS {
+                    if selector.starts_with(element) {
+                        pseudo_colon = "::";
+                        break;
+                    }
+                }
+
+                f.write_fmt(format_args!("{pseudo_colon}{selector}"))
+            },
         }
     }
 }
