@@ -1,17 +1,17 @@
 [package]
 name = "unstyled"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license = "MIT"
 authors = ["Yannik_Sc"]
-keywords = ["scoped-styles", "leptos", "web-components", "css", "styling", "web", "wasm"]
+keywords = ["scoped-styles", "leptos", "web-components", "css", "web"]
 categories = ["web-programming"]
 description = "Unstyled is just another library which allows to write scoped CSS styles in Rust"
 repository = "https://github.com/YannikSc/unstyled"
 readme = "../README.md"
 
 [dependencies]
-unstyled_macro = { path = "../unstyled_macro", version = "0.1.2" }
+unstyled_macro = { path = "../unstyled_macro", version = "0.1.3" }
 
 [features]
 css-block-lint = ["unstyled_macro/css-block-lint"]
