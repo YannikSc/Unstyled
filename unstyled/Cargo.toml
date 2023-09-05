@@ -13,3 +13,6 @@ readme = "../README.md"
 [dependencies]
 unstyled_macro = { path = "../unstyled_macro", version = "0.1.2" }
 
+[features]
+css-block-lint = ["unstyled_macro/css-block-lint"]
+
