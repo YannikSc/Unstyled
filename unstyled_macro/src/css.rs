@@ -85,7 +85,7 @@ fn check_css_block_syntax(content: &str) {
         }
 
         if matches!(scanning_kind, ScanningKind::Value) && char == ':' && !quoted {
-            panic!("Statement {statement} seems unterminated!");
+            panic!("Statement \"{statement}\" seems unterminated!");
         }
 
         if matches!(scanning_kind, ScanningKind::Name) && char == ':' && !quoted {
@@ -95,7 +95,7 @@ fn check_css_block_syntax(content: &str) {
                     continue;
                 }
 
-                panic!("Property {scanned} seems invalid!")
+                panic!("Property \"{scanned}\" seems invalid!")
             }
 
             scanning_kind = ScanningKind::Value;
@@ -113,7 +113,7 @@ fn check_css_block_syntax(content: &str) {
             scanning_kind = ScanningKind::Whitespace;
 
             if scanned.trim().is_empty() {
-                panic!("Statement {statement} is missing a value!");
+                panic!("Statement \"{statement}\" is missing a value!");
             }
 
             statement.clear();
