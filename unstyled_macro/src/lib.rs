@@ -16,7 +16,7 @@ static mut GENERATED_STYLES: Option<HashMap<String, String>> = None;
 ///
 #[cfg_attr(not(test), proc_macro)]
 pub fn style(tokens: TokenStream) -> TokenStream {
-    unsafe  {
+    unsafe {
         if GENERATED_STYLES.is_none() {
             GENERATED_STYLES.replace(HashMap::new());
         }
@@ -87,11 +87,14 @@ mod test {
 
     #[test]
     pub fn test_simple_attr() {
-        let css = "[test] {display: block;}".to_string();
+        let css = "[test=\"value\"] {display: block;}".to_string();
         let mut parser = StylesheetParser::default();
         parser.parse_stylesheet(css);
         let compiled = parser.stylesheet.compile("random_test_class");
-        assert_eq!(compiled, "[test].random_test_class {display: block;}");
+        assert_eq!(
+            compiled,
+            "[test=\"value\"].random_test_class {display: block;}"
+        );
     }
 
     #[test]
@@ -275,5 +278,58 @@ mod test {
             compiled,
             "span.random_test_class *:not(a) { content: '$'; display: block; }"
         );
+    }
+
+    #[cfg(feature = "css-block-lint")]
+    mod lint_tests {
+        use crate::css::StylesheetParser;
+
+        #[test]
+        #[should_panic]
+        pub fn test_lint_empty_value_panic() {
+            let css =
+                "span :deep(*:not(a)) { content: '$'; display: block; --no-value:; }".to_string();
+            let mut parser = StylesheetParser::default();
+            parser.parse_stylesheet(css);
+            parser.stylesheet.compile("random_test_class");
+        }
+
+        #[test]
+        #[should_panic]
+        pub fn test_lint_unclosed_quote() {
+            let css = "span :deep(*:not(a)) { content: '$; }".to_string();
+            let mut parser = StylesheetParser::default();
+            parser.parse_stylesheet(css);
+            parser.stylesheet.compile("random_test_class");
+        }
+
+        #[test]
+        #[should_panic]
+        pub fn test_lint_missing_semi() {
+            let css = "span :deep(*:not(a)) { content: '$;' display: block; }".to_string();
+            let mut parser = StylesheetParser::default();
+            parser.parse_stylesheet(css);
+            parser.stylesheet.compile("random_test_class");
+        }
+
+        #[test]
+        #[should_panic]
+        pub fn test_lint_broken_property() {
+            let css =
+                "span :deep(*:not(a)) { ani ation: fancy-animation 1s infinite; }".to_string();
+            let mut parser = StylesheetParser::default();
+            parser.parse_stylesheet(css);
+            parser.stylesheet.compile("random_test_class");
+        }
+
+        #[test]
+        pub fn test_lint_whitespace_padded_property_works() {
+            let css = "span { animation : fancy-animation 1s infinite; --custom-🚀-prop: '🌵' }"
+                .to_string();
+            let mut parser = StylesheetParser::default();
+            parser.parse_stylesheet(css);
+            let compiled = parser.stylesheet.compile("random_test_class");
+            assert_eq!(compiled, "span.random_test_class { animation : fancy-animation 1s infinite; --custom-🚀-prop: '🌵' }")
+        }
     }
 }

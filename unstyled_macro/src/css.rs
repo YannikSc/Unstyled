@@ -56,6 +56,82 @@ impl AtRuleWithSelectors {
     }
 }
 
+#[derive(Debug)]
+#[cfg(feature = "css-block-lint")]
+enum ScanningKind {
+    Whitespace,
+    Name,
+    Value,
+}
+
+#[cfg(feature = "css-block-lint")]
+fn check_css_block_syntax(content: &str) {
+    let chars = content.chars();
+    let mut quoted = false;
+    let mut scanning_kind = ScanningKind::Whitespace;
+    let mut statement = String::new();
+    let mut scanned = String::new();
+
+    for char in chars {
+        if "{}".contains(char) {
+            continue;
+        }
+
+        if "'\"".contains(char) {
+            quoted = !quoted;
+            scanned.push(char);
+            statement.push(char);
+            continue;
+        }
+
+        if matches!(scanning_kind, ScanningKind::Whitespace) && !char.is_whitespace() {
+            scanning_kind = ScanningKind::Name;
+        }
+
+        if matches!(scanning_kind, ScanningKind::Value) && char == ':' && !quoted {
+            panic!("Statement {statement} seems unterminated!");
+        }
+
+        if matches!(scanning_kind, ScanningKind::Name) && char == ':' && !quoted {
+            for char in scanned.trim().chars() {
+                // CSS this is allowed as of the ident spec (https://www.w3.org/TR/CSS22/syndata.html#value-def-identifier). Yes emojis are fine
+                if "-_".contains(char) || char.is_alphanumeric() || char > '\u{0080}' {
+                    continue;
+                }
+
+                panic!("Property {scanned} seems invalid!")
+            }
+
+            scanning_kind = ScanningKind::Value;
+            scanned.clear();
+            statement.push(char);
+            continue;
+        }
+
+        if !matches!(scanning_kind, ScanningKind::Whitespace) && (!quoted && char != ';') {
+            scanned.push(char);
+            statement.push(char);
+        }
+
+        if char == ';' && !quoted {
+            scanning_kind = ScanningKind::Whitespace;
+
+            if scanned.trim().is_empty() {
+                panic!("Statement {statement} is missing a value!");
+            }
+
+            statement.clear();
+            scanned.clear();
+
+            continue;
+        }
+    }
+
+    if quoted {
+        panic!("{content} is missing closing quote!");
+    }
+}
+
 impl NormalBlock {
     pub fn compile(&self, scope_class: &str) -> String {
         let mut output = String::new();
@@ -63,6 +139,9 @@ impl NormalBlock {
         for combinator in &self.selector {
             output.push_str(&combinator.compile(scope_class));
         }
+
+        #[cfg(feature = "css-block-lint")]
+        check_css_block_syntax(&self.content);
 
         output.push_str(&self.content);
 
@@ -153,12 +232,10 @@ fn apply_scope_class(scope_class: &str, combinator: &str, selector: &Selector) -
 
                     selector.push(char);
                 }
-
             }
 
-
             format!(".{scope_class}{selector}{combinator}")
-        },
+        }
         selector => format!("{selector}.{scope_class}{combinator}"),
     }
 }
@@ -228,7 +305,7 @@ impl Display for Selector {
                 }
 
                 f.write_fmt(format_args!("{pseudo_colon}{selector}"))
-            },
+            }
         }
     }
 }
@@ -420,9 +497,9 @@ impl StylesheetParser {
 
             if char == ']'
                 && current_token
-                .as_ref()
-                .map(|token| token.is_attribute())
-                .unwrap_or_default()
+                    .as_ref()
+                    .map(|token| token.is_attribute())
+                    .unwrap_or_default()
             {
                 char_iter.next();
 
@@ -527,7 +604,7 @@ impl StylesheetParser {
                                 StyleBlock::AtRuleWithSelectors(_) => None,
                                 StyleBlock::GenericAtRule(_) => None,
                             }
-                                .unwrap()
+                            .unwrap()
                         })
                         .collect::<Vec<_>>();
                     let at_rule = AtRuleWithSelectors { at_rule, blocks };
