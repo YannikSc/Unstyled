@@ -4,19 +4,16 @@ use std::str::Chars;
 
 const SELECTOR_END: &str = ".#[{:";
 
-#[derive(Debug, Default)]
 struct AtRuleWithSelectors {
     at_rule: String,
     blocks: Vec<NormalBlock>,
 }
 
-#[derive(Debug)]
 struct NormalBlock {
     selector: Vec<Combinator>,
     content: String,
 }
 
-#[derive(Debug)]
 enum StyleBlock {
     Normal(NormalBlock),
     /// Used for @rules like @media or @supports, which again contains selectors
@@ -31,7 +28,7 @@ impl StyleBlock {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub(crate) struct Stylesheet {
     blocks: Vec<StyleBlock>,
 }
@@ -56,7 +53,6 @@ impl AtRuleWithSelectors {
     }
 }
 
-#[derive(Debug)]
 #[cfg(feature = "css-block-lint")]
 enum ScanningKind {
     Whitespace,
@@ -181,7 +177,6 @@ impl Stylesheet {
     }
 }
 
-#[derive(Clone, Debug)]
 enum Combinator {
     Sibling(Selector),
     Child(Selector),
@@ -253,7 +248,6 @@ impl Combinator {
     }
 }
 
-#[derive(Clone, Debug)]
 enum Selector {
     Tag(String),
     Class(String),
@@ -310,7 +304,7 @@ impl Display for Selector {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub(crate) struct StylesheetParser {
     pub stylesheet: Stylesheet,
     current_selector: Vec<Combinator>,
@@ -601,8 +595,7 @@ impl StylesheetParser {
                         .map(|block| {
                             match block {
                                 StyleBlock::Normal(normal) => Some(normal),
-                                StyleBlock::AtRuleWithSelectors(_) => None,
-                                StyleBlock::GenericAtRule(_) => None,
+                                _ => None,
                             }
                             .unwrap()
                         })
