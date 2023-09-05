@@ -1,5 +1,5 @@
+use leptos::ssr::render_to_string;
 use leptos::*;
-use leptos::ssr::{render_to_string};
 
 #[component]
 pub fn MyUnstyledComponent(cx: Scope) -> impl IntoView {
@@ -53,16 +53,18 @@ pub fn MyUnstyledComponent(cx: Scope) -> impl IntoView {
 }
 
 pub fn main() {
-    let output = render_to_string(|cx| view! {cx,
-        <html lang="en">
-        <head>
-            <title>"My Unstyled test"</title>
-            <link rel="stylesheet" href="/unstyled.css" />
-        </head>
-        <body>
-            <MyUnstyledComponent />
-        </body>
-        </html>
+    let output = render_to_string(|cx| {
+        view! {cx,
+            <html lang="en">
+            <head>
+                <title>"My Unstyled test"</title>
+                <link rel="stylesheet" href="/unstyled.css" />
+            </head>
+            <body>
+                <MyUnstyledComponent />
+            </body>
+            </html>
+        }
     });
 
     write_to_target(&output);
@@ -71,6 +73,9 @@ pub fn main() {
 }
 
 fn write_to_target(html: &str) {
-    let output = std::env::current_dir().unwrap().join("../../target").join("index.html");
+    let output = std::env::current_dir()
+        .unwrap()
+        .join("../../target")
+        .join("index.html");
     std::fs::write(output, html).expect("Could not write index.html");
 }

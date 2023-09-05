@@ -8,6 +8,17 @@ This library is made with [leptos](https://github.com/leptos-rs/leptos) primaril
 why it would not work with other
 frameworks like [yew](https://github.com/yewstack/yew).
 
+## Features
+
+- Scoped css styling
+  - Supporting all (that I could think of) css selector types
+- Basic linting of css
+  - Unterminated quotes
+  - Missing value for property
+  - Invalid characters in property name
+    - Emoji support included as of [the spec](https://www.w3.org/TR/CSS22/syndata.html#value-def-identifier)
+  - Missing semicolon;
+
 ## Installation
 
 ```
