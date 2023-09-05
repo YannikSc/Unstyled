@@ -18,6 +18,7 @@ frameworks like [yew](https://github.com/yewstack/yew).
   - Invalid characters in property name
     - Emoji support included as of [the spec](https://www.w3.org/TR/CSS22/syndata.html#value-def-identifier)
   - Missing semicolon;
+- Supports CSR and SSR
 
 ## Installation
 
