@@ -2,7 +2,7 @@ use leptos::ssr::render_to_string;
 use leptos::*;
 
 #[component]
-pub fn MyUnstyledComponent(cx: Scope) -> impl IntoView {
+pub fn MyUnstyledComponent() -> impl IntoView {
     let class_name = unstyled::style! {"
         @keyframes rainbow-text {
             0% {
@@ -39,7 +39,7 @@ pub fn MyUnstyledComponent(cx: Scope) -> impl IntoView {
         }
     "};
 
-    view! {cx, class = class_name,
+    view! {class = class_name,
         <header>
             <h1 class="title">"Style the, cruel, Unstyled world!"</h1>
             <nav>
@@ -53,8 +53,8 @@ pub fn MyUnstyledComponent(cx: Scope) -> impl IntoView {
 }
 
 pub fn main() {
-    let output = render_to_string(|cx| {
-        view! {cx,
+    let output = render_to_string(|| {
+        view! {
             <html lang="en">
             <head>
                 <title>"My Unstyled test"</title>
